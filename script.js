@@ -1,4 +1,18 @@
 $(function () {
+  var config = {
+    eventstart: new Date('January 21 2017 07:00:00 GMT+0700'),
+    eventend: new Date('January 21 2017 12:00:00 GMT+0700'),
+    transdays: 'Hari',
+    transhours: 'Jam',
+    transminutes: 'Menit',
+    transseconds: 'Detik',
+    say : {
+      coming: 'Lagi...!!!',
+      running: 'Berjalan...',
+      finished: 'Berlalu...'
+    }
+  }
+
   AOS.init();
 
   $(document).on('click','.navbar-collapse.in',function(e) {
@@ -9,11 +23,17 @@ $(function () {
 
   $('body').scrollspy({ target: '#site-navbar' });
 
-  /*
-   * Copied from http://codepen.io/SitePoint/pen/MwNPVq
-   */
-  function getTimeRemaining(endtime) {
-    var t = Date.parse(endtime) - Date.parse(new Date());
+  function getTime(starttime, endtime) {
+    if (Date.parse(starttime) > Date.parse(new Date())) {
+      var t = Date.parse(starttime) - Date.parse(new Date());
+      var status = 'coming';
+    } else if (Date.parse(endtime) > Date.parse(new Date())) {
+      var t = Date.parse(endtime) - Date.parse(new Date());
+      var status = 'running';
+    } else {
+      var t = Date.parse(new Date()) - Date.parse(endtime);
+      var status = 'finished';
+    }
     var seconds = Math.floor((t / 1000) % 60);
     var minutes = Math.floor((t / 1000 / 60) % 60);
     var hours = Math.floor((t / (1000 * 60 * 60)) % 24);
@@ -23,25 +43,22 @@ $(function () {
       'days': days,
       'hours': hours,
       'minutes': minutes,
-      'seconds': seconds
+      'seconds': seconds,
+      'status': status
     };
   }
 
-  function initializeClock(id, endtime) {
+  function initializeClock(id, starttime, endtime) {
     var clock = document.getElementById(id);
-    var daysSpan = clock.querySelector('.days');
-    var hoursSpan = clock.querySelector('.hours');
-    var minutesSpan = clock.querySelector('.minutes');
-    var secondsSpan = clock.querySelector('.seconds');
 
     function updateClock() {
-      var t = getTimeRemaining(endtime);
+      var t = getTime(starttime, endtime);
 
-      daysSpan.innerHTML = t.days;
-      hoursSpan.innerHTML = ('0' + t.hours).slice(-2);
-      minutesSpan.innerHTML = ('0' + t.minutes).slice(-2);
-      secondsSpan.innerHTML = ('0' + t.seconds).slice(-2);
-
+      clock.innerHTML = t.days+' '+config.transdays+' '+
+                        t.hours+' '+config.transhours+' '+
+                        t.minutes+' '+config.transminutes+' '+
+                        t.seconds+' '+config.transseconds+' '+
+                        config.say[t.status];
       if (t.total <= 0) {
         clearInterval(timeinterval);
       }
@@ -51,7 +68,5 @@ $(function () {
     var timeinterval = setInterval(updateClock, 1000);
   }
 
-  var deadline = new Date('January 21 2017 07:00:00 GMT+0700');
-  initializeClock('clockdiv', deadline);
-  // end copy
+  initializeClock('clockdiv', config.eventstart, config.eventend);
 });
